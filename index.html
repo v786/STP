@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+        <script src="phaser.js"></script>
+        <script src="js/boot.js"></script>
+    <script src="js/load.js"></script>
+    <script src="js/gametitle.js"></script>
+    <script src="js/level1.js"></script>
+    <script src="js/gameover.js"></script> 
+        <style>
+          body{margin:0}
+        </style>
+    <script>
+      (function() {
+        var game = new Phaser.Game(800, 480, Phaser.CANVAS, "game");
+        game.state.add("Boot",boot);
+        game.state.add("Preload",preload);
+        game.state.add("TheGame",theGame);
+        //game.state.add("GameOver",gameOver);
+        game.state.start("Boot");
+      })();    
+    </script>
+    </head>
+    <body>
+    </body>
+</html>
