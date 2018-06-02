@@ -11,6 +11,9 @@ var score = 0;
 var scoreText;
 
 theGame.prototype = {
+    preload: function(){ 
+      this.game.load.spritesheet('archer', 'assets/archer.png', 64, 64);
+    },
     create: function(){
     
     //  We're going to be using physics, so enable the Arcade Physics system
@@ -42,7 +45,7 @@ theGame.prototype = {
     ledge.body.immovable = true;
 
     // The player and its settings
-    player = this.game.add.sprite(32, this.game.world.height - 150, 'dude');
+    player = this.game.add.sprite(32, this.game.world.height - 150, 'archer');
 
     //  We need to enable physics on the player
     this.game.physics.arcade.enable(player);
@@ -53,8 +56,16 @@ theGame.prototype = {
     player.body.collideWorldBounds = true;
 
     //  Our two animations, walking left and right.
-    player.animations.add('left', [0, 1, 2, 3], 10, true);
-    player.animations.add('right', [5, 6, 7, 8], 10, true);
+    var foo = []
+    for(var i = 117; i<126;i++){
+      foo.push(i);
+    }
+    player.animations.add('left', foo, 10, true);
+    var foo = []
+    for(var i = 143; i<151;i++){
+      foo.push(i);
+    }
+    player.animations.add('right', foo, 10, true);
 
     //  Finally some stars to collect
     stars = this.game.add.group();
@@ -119,6 +130,9 @@ theGame.prototype = {
     {
         player.body.velocity.y = -350;
     }
+  },
+  render: function(){
+
   },
   collectStar: function(player, star){
     // Removes the star from the screen
