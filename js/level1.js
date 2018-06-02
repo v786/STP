@@ -9,10 +9,12 @@ var cursors;
 var stars;
 var score = 0;
 var scoreText;
+var orcs;
 
 theGame.prototype = {
     preload: function(){ 
       this.game.load.spritesheet('archer', 'assets/archer.png', 64, 64);
+      this.game.load.spritesheet('orc', 'assets/orc.png', 64, 64);
     },
     create: function(){
       //  Modify the world and camera bounds
@@ -24,6 +26,11 @@ theGame.prototype = {
       //  A simple background for our game
       sky = this.game.add.sprite(0, 0, 'sky');
       sky.fixedToCamera = true;
+
+      //creating Orcs group
+      orcs = this.game.add.group();
+      orcs.enableBody = true;
+
       //  The platforms group contains the ground and the 2 ledges we can jump on
       platforms = this.game.add.group();
 
@@ -45,18 +52,21 @@ theGame.prototype = {
       }
 
       // add no. of ledges
-      x = 6;
+      x = 1;
       for(var i = 0; i<x; i++){
         //  Now let's create two ledges
         //adding ledge one
-        var ledge = platforms.create(i*950, 250, 'ground');
+        var posX = i*950;
+        var posY = 180;
+        var ledge = platforms.create(posX, posY+50, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(0.7, 1);
 
         //adding ledge two
-        ledge = platforms.create(i*950+500, 180, 'ground');
+        ledge = platforms.create(posX+500, posY, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(0.7, 1);
+        this.spawnOrc(posX+60, posY-75, orcs);
       }
 
       // The player and its settings
@@ -117,6 +127,7 @@ theGame.prototype = {
     //  Collide the player and the stars with the platforms
     var hitPlatform = this.game.physics.arcade.collide(player, platforms);
     this.game.physics.arcade.collide(stars, platforms);
+    this.game.physics.arcade.collide(orcs, platforms);
 
     //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
     this.game.physics.arcade.overlap(player, stars, this.collectStar, null, this);
@@ -151,7 +162,7 @@ theGame.prototype = {
     }
   },
   render: function(){
-    this.game.debug.body(player);
+    this.game.debug.body(orc);
   },
   collectStar: function(player, star){
     // Removes the star from the screen
@@ -159,5 +170,34 @@ theGame.prototype = {
     //  Add and update the score
     score += 10;
     scoreText.text = 'Score: ' + score;
+  },
+  spawnOrc: function(x,y){
+    orc = orcs.create(x,y,'orc');
+    orc.body.gravity.y = 300;
+    orc.body.setSize(35,54,15,6);
+    
+    //  Our two animations, walking left and right.
+    var foo = []
+    for(var i = 117; i<126;i++){
+      foo.push(i);
+    }
+    orc.animations.add('left', foo, 10, true);
+    var foo = []
+    for(var i = 143; i<151;i++){
+      foo.push(i);
+    }
+    orc.animations.add('right', foo, 10, true);
+
+    this.game.time.events.loop(Phaser.Timer.SECOND, this.orcPath, this, orc);
+  },
+  orcPath: function(orc){
+    if(orc.body.velocity.x > 0){
+      orc.body.velocity.x = -100;
+      orc.animations.play('left');
+    }
+    else if(orc.body.velocity.x <= 0){
+      orc.body.velocity.x = 100;
+      orc.animations.play('right');
+    }
   }
 }
