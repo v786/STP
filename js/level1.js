@@ -10,11 +10,17 @@ var stars;
 var score = 0;
 var scoreText;
 var orcs;
+var arrows;
+var faceLeft;
+
+var gameOver = true;
 
 theGame.prototype = {
     preload: function(){ 
       this.game.load.spritesheet('archer', 'assets/archer.png', 64, 64);
       this.game.load.spritesheet('orc', 'assets/orc.png', 64, 64);
+      this.game.load.spritesheet('goblin', 'assets/goblin.png', 64, 64);
+      this.game.load.spritesheet('arrow', 'assets/arrow.png', 64, 64);
     },
     create: function(){
       //  Modify the world and camera bounds
@@ -30,6 +36,10 @@ theGame.prototype = {
       //creating Orcs group
       orcs = this.game.add.group();
       orcs.enableBody = true;
+
+      //creating group for arrows
+      arrows = this.game.add.group();
+      arrows.enableBody = true;
 
       //  The platforms group contains the ground and the 2 ledges we can jump on
       platforms = this.game.add.group();
@@ -56,17 +66,19 @@ theGame.prototype = {
       for(var i = 0; i<x; i++){
         //  Now let's create two ledges
         //adding ledge one
-        var posX = i*950;
-        var posY = 180;
+        //adding slight variance to the hights in the ledges
+        var posX = i*950 + Math.round(Math.random()*20);
+        var posY = 180 + Math.round(Math.random()*50);
         var ledge = platforms.create(posX, posY+50, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(0.7, 1);
+        this.spawnGoblin(posX+60, posY-75, orcs);
 
         //adding ledge two
         ledge = platforms.create(posX+500, posY, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(0.7, 1);
-        this.spawnOrc(posX+60, posY-75, orcs);
+        this.spawnOrc(posX+560, posY-75, orcs);
       }
 
       // The player and its settings
@@ -94,7 +106,19 @@ theGame.prototype = {
         foo.push(i);
       }
       player.animations.add('right', foo, 10, true);
+      var foo = []
+      for(var i = 221; i<230;i++){
+        foo.push(i);
+      }
+      shootLeft = player.animations.add('shootLeft', foo, 10, false);
+      shootLeft.onComplete.add(this.shoot, this);
 
+      var foo = []
+      for(var i = 247; i<256;i++){
+        foo.push(i);
+      }
+      shootRight = player.animations.add('shootRight', foo, 10, false);
+      shootRight.onComplete.add(this.shoot, this);
       //add camer and allow it to follow player
       this.game.camera.follow(player);
 
@@ -131,6 +155,7 @@ theGame.prototype = {
 
     //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
     this.game.physics.arcade.overlap(player, stars, this.collectStar, null, this);
+    this.game.physics.arcade.overlap(arrows, orcs, this.killOrc, null, this);
 
     //  Reset the players velocity (movement)
     player.body.velocity.x = 0;
@@ -141,6 +166,8 @@ theGame.prototype = {
         player.body.velocity.x = -150;
 
         player.animations.play('left');
+
+        faceLeft = true;
     }
     else if (cursors.right.isDown)
     {
@@ -148,6 +175,15 @@ theGame.prototype = {
         player.body.velocity.x = 150;
 
         player.animations.play('right');
+
+        faceLeft = false;
+    }
+    else if(cursors.down.isDown){
+      //allowing the player to shoot arrows
+      if(faceLeft)
+        player.animations.play('shootLeft');
+      else
+        player.animations.play('shootRight');
     }
     else
     {
@@ -162,7 +198,15 @@ theGame.prototype = {
     }
   },
   render: function(){
-    this.game.debug.body(orc);
+    this.game.debug.body(player);
+  },
+  shoot: function(){
+    if(faceLeft){
+      this.spawnArrow(player.x,player.y-15,-300);
+    }
+    else{
+      this.spawnArrow(player.x,player.y-15,300);
+    }
   },
   collectStar: function(player, star){
     // Removes the star from the screen
@@ -170,6 +214,18 @@ theGame.prototype = {
     //  Add and update the score
     score += 10;
     scoreText.text = 'Score: ' + score;
+  },
+  spawnArrow: function(x,y, speed){
+    if(speed > 0){
+      arrow = arrows.create(x+60,y+100,'arrow');
+      arrow.angle += 180;
+      arrow.body.setSize(30,5,-50,-50);
+    }
+    else{
+      arrow = arrows.create(x,y,'arrow');
+      arrow.body.setSize(30,5,20,45);
+    }
+    arrow.body.velocity.x = speed;
   },
   spawnOrc: function(x,y){
     orc = orcs.create(x,y,'orc');
@@ -190,6 +246,25 @@ theGame.prototype = {
 
     this.game.time.events.loop(Phaser.Timer.SECOND, this.orcPath, this, orc);
   },
+  spawnGoblin: function(x,y){
+    goblin = orcs.create(x,y,'goblin');
+    goblin.body.gravity.y = 300;
+    goblin.body.setSize(35,54,15,6);
+    goblin.scale.setTo(0.7, 0.7);
+    //  Our two animations, walking left and right.
+    var foo = []
+    for(var i = 117; i<126;i++){
+      foo.push(i);
+    }
+    goblin.animations.add('left', foo, 10, true);
+    var foo = []
+    for(var i = 143; i<151;i++){
+      foo.push(i);
+    }
+    goblin.animations.add('right', foo, 10, true);
+
+    this.game.time.events.loop(Phaser.Timer.SECOND, this.orcPath, this, goblin);
+  },
   orcPath: function(orc){
     if(orc.body.velocity.x > 0){
       orc.body.velocity.x = -100;
@@ -199,5 +274,15 @@ theGame.prototype = {
       orc.body.velocity.x = 100;
       orc.animations.play('right');
     }
+  },
+  killOrc: function(arrow, orc){
+    console.log('Inside Kill');
+    orc.kill();
+    arrow.kill();
+  },
+  killPlayer: function(player, orc){
+    console.log('Inside KillPLayer');
+    player.kill();
+    orc.kill();
   }
 }
