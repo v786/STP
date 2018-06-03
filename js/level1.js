@@ -21,6 +21,7 @@ theGame.prototype = {
       this.game.load.spritesheet('orc', 'assets/orc.png', 64, 64);
       this.game.load.spritesheet('goblin', 'assets/goblin.png', 64, 64);
       this.game.load.spritesheet('arrow', 'assets/arrow.png', 64, 64);
+      this.game.load.spritesheet('ground', 'assets/ground.png');
     },
     create: function(){
       //  Modify the world and camera bounds
@@ -52,13 +53,14 @@ theGame.prototype = {
       //creating fixed bottom ground 
       for(var i = 0; i<x;i++){
         // Here we create the ground.
-        var ground = platforms.create(0+i*950, this.game.world.height - 64, 'ground');
+        ground = platforms.create(0+i*950, this.game.world.height - 64, 'ground');
 
         //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
         ground.scale.setTo(2, 2);
 
         //  This stops it from falling away when you jump on it
         ground.body.immovable = true;
+        ground.body.setSize(310,64,0,6);
       }
 
       // add no. of ledges
@@ -69,15 +71,17 @@ theGame.prototype = {
         //adding slight variance to the hights in the ledges
         var posX = i*950 + Math.round(Math.random()*20);
         var posY = 180 + Math.round(Math.random()*50);
-        var ledge = platforms.create(posX, posY+50, 'ground');
+        ledge = platforms.create(posX, posY+50, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(0.7, 1);
+        ledge.body.setSize(320,70,0,8);
         this.spawnGoblin(posX+60, posY-75, orcs);
 
         //adding ledge two
         ledge = platforms.create(posX+500, posY, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(0.7, 1);
+        ledge.body.setSize(310,64,0,6);
         this.spawnOrc(posX+560, posY-75, orcs);
       }
 
